@@ -4,16 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Phone, Video, MoreVertical, Smile, Mic, Send, Image, DollarSign } from 'lucide-react';
+import { ArrowLeft, Phone, Video, MoreVertical, Smile, Mic, Send, Image, DollarSign, Gift, Camera } from 'lucide-react';
 
 interface Message {
   id: string;
   sender: 'man' | 'woman';
   content: string;
   timestamp: Date;
-  type?: 'text' | 'money' | 'emoji';
+  type?: 'text' | 'money' | 'emoji' | 'image';
   amount?: number;
   currency?: string;
+  imageUrl?: string;
 }
 
 interface Participant {
@@ -34,7 +35,20 @@ const ChatPage = () => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [typingSender, setTypingSender] = useState<'man' | 'woman' | null>(null);
+  const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Play notification sound
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
+      audio.volume = 0.3;
+      audio.play().catch(() => {});
+    } catch (error) {
+      console.log('Sound notification not available');
+    }
+  };
 
   useEffect(() => {
     // Load chat data from localStorage
@@ -72,8 +86,11 @@ const ChatPage = () => {
         setCurrentMessageIndex(prev => prev + 1);
         setIsTyping(false);
         setTypingSender(null);
+        
+        // Play notification sound for new messages
+        playNotificationSound();
       }, 2000);
-    }, currentMessageIndex === 0 ? 1000 : 3000); // First message after 1s, others after 3s
+    }, currentMessageIndex === 0 ? 1000 : 3000);
 
     return () => clearTimeout(timer);
   }, [chatData, currentMessageIndex]);
@@ -83,8 +100,44 @@ const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [displayedMessages, isTyping]);
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        const newMessage: Message = {
+          id: Date.now().toString(),
+          sender: 'man',
+          content: 'صورة',
+          timestamp: new Date(),
+          type: 'image',
+          imageUrl
+        };
+        setDisplayedMessages(prev => [...prev, newMessage]);
+        playNotificationSound();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (messageInput.trim()) {
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        sender: 'man',
+        content: messageInput,
+        timestamp: new Date(),
+        type: 'text'
+      };
+      setDisplayedMessages(prev => [...prev, newMessage]);
+      setMessageInput('');
+      playNotificationSound();
+    }
+  };
+
   if (!chatData) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen bg-gray-100">Loading...</div>;
   }
 
   const getParticipantInfo = (sender: 'man' | 'woman') => {
@@ -101,7 +154,6 @@ const ChatPage = () => {
 
   const renderMoneyMessage = (message: Message) => {
     const participant = getParticipantInfo(message.sender);
-    const isFromMan = message.sender === 'man';
     
     return (
       <div className="flex justify-center my-8">
@@ -170,12 +222,12 @@ const ChatPage = () => {
     );
   };
 
-  const renderRegularMessage = (message: Message) => {
+  const renderImageMessage = (message: Message) => {
     const participant = getParticipantInfo(message.sender);
     const isFromMan = message.sender === 'man';
     
     return (
-      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'}`}>
+      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'} mb-4`}>
         <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isFromMan ? 'flex-row-reverse space-x-reverse' : ''}`}>
           <Avatar className="w-8 h-8">
             <AvatarImage src={participant.profilePicture} />
@@ -183,14 +235,49 @@ const ChatPage = () => {
           </Avatar>
           
           <div
-            className={`px-4 py-2 rounded-lg ${
+            className={`rounded-lg overflow-hidden shadow-lg ${
               isFromMan
-                ? 'bg-green-500 text-white rounded-br-none'
-                : 'bg-white text-gray-800 rounded-bl-none shadow-sm'
+                ? 'bg-[#005c4b] rounded-br-none'
+                : 'bg-white rounded-bl-none'
+            }`}
+          >
+            <img 
+              src={message.imageUrl} 
+              alt="Shared image" 
+              className="max-w-full h-auto max-h-64 object-cover"
+            />
+            <div className={`px-3 py-1 ${isFromMan ? 'text-white' : 'text-gray-800'}`}>
+              <p className="text-xs opacity-70">
+                {formatTime(message.timestamp)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderRegularMessage = (message: Message) => {
+    const participant = getParticipantInfo(message.sender);
+    const isFromMan = message.sender === 'man';
+    
+    return (
+      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'} mb-4`}>
+        <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isFromMan ? 'flex-row-reverse space-x-reverse' : ''}`}>
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={participant.profilePicture} />
+            <AvatarFallback>{participant.name[0]}</AvatarFallback>
+          </Avatar>
+          
+          <div
+            className={`px-4 py-2 rounded-lg shadow-sm ${
+              isFromMan
+                ? 'bg-[#005c4b] text-white rounded-br-none'
+                : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'
             }`}
           >
             <p className="text-sm">{message.content}</p>
-            <p className={`text-xs mt-1 ${isFromMan ? 'text-green-100' : 'text-gray-500'}`}>
+            <p className={`text-xs mt-1 ${isFromMan ? 'text-gray-300' : 'text-gray-500'}`}>
               {formatTime(message.timestamp)}
             </p>
           </div>
@@ -200,54 +287,56 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      {/* Fixed Header */}
-      <div className="bg-green-600 text-white p-4 flex items-center space-x-3 fixed top-0 left-0 right-0 z-50 shadow-lg">
+    <div className="flex flex-col h-screen bg-[#efeae2]">
+      {/* Fixed Header - WhatsApp style */}
+      <div className="bg-[#00a884] text-white p-4 flex items-center space-x-3 fixed top-0 left-0 right-0 z-50 shadow-lg">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/')}
-          className="text-white hover:bg-green-700"
+          className="text-white hover:bg-[#005c4b] rounded-full p-2"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
         
-        <Avatar className="w-10 h-10">
+        <Avatar className="w-10 h-10 border-2 border-white/20">
           <AvatarImage src={chatData.woman.profilePicture} />
-          <AvatarFallback>{chatData.woman.name[0]}</AvatarFallback>
+          <AvatarFallback className="bg-gray-600 text-white">{chatData.woman.name[0]}</AvatarFallback>
         </Avatar>
         
         <div className="flex-1">
-          <h3 className="font-semibold">{chatData.woman.name}</h3>
-          <p className="text-sm text-green-100">
+          <h3 className="font-semibold text-white">{chatData.woman.name}</h3>
+          <p className="text-sm text-gray-200">
             {isTyping && typingSender ? 'typing...' : 'online'}
           </p>
         </div>
         
         <div className="flex space-x-2">
-          <Button variant="ghost" size="sm" className="text-white hover:bg-green-700">
+          <Button variant="ghost" size="sm" className="text-white hover:bg-[#005c4b] rounded-full p-2">
             <Video className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-green-700">
+          <Button variant="ghost" size="sm" className="text-white hover:bg-[#005c4b] rounded-full p-2">
             <Phone className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-green-700">
+          <Button variant="ghost" size="sm" className="text-white hover:bg-[#005c4b] rounded-full p-2">
             <MoreVertical className="w-5 h-5" />
           </Button>
         </div>
       </div>
 
-      {/* Messages Container with top padding for fixed header */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pt-24 pb-24">
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto p-4 pt-24 pb-24 bg-[#efeae2]">
         {displayedMessages.map((message) => (
           <div key={message.id}>
-            {message.type === 'money' ? renderMoneyMessage(message) : renderRegularMessage(message)}
+            {message.type === 'money' ? renderMoneyMessage(message) : 
+             message.type === 'image' ? renderImageMessage(message) : 
+             renderRegularMessage(message)}
           </div>
         ))}
 
         {/* Typing Indicator */}
         {isTyping && typingSender && (
-          <div className={`flex ${typingSender === 'man' ? 'justify-end' : 'justify-start'}`}>
+          <div className={`flex ${typingSender === 'man' ? 'justify-end' : 'justify-start'} mb-4`}>
             <div className={`flex items-end space-x-2 max-w-xs ${typingSender === 'man' ? 'flex-row-reverse space-x-reverse' : ''}`}>
               <Avatar className="w-8 h-8">
                 <AvatarImage src={getParticipantInfo(typingSender).profilePicture} />
@@ -268,32 +357,70 @@ const ChatPage = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Fixed Input Area */}
-      <div className="bg-white border-t p-4 fixed bottom-0 left-0 right-0 z-50 shadow-lg">
-        <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" className="text-gray-500">
-            <Smile className="w-5 h-5" />
-          </Button>
+      {/* Fixed Input Area - WhatsApp style */}
+      <div className="bg-[#f0f2f5] border-t border-gray-300 p-4 fixed bottom-0 left-0 right-0 z-50">
+        <div className="flex items-end space-x-3">
+          <div className="flex space-x-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Gift className="w-5 h-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera className="w-5 h-5" />
+            </Button>
+          </div>
           
-          <div className="flex-1 flex items-center space-x-2">
+          <div className="flex-1 flex items-end space-x-2">
             <Input
               placeholder="Type a message"
-              className="flex-1"
-              disabled
+              className="flex-1 rounded-full bg-white border-gray-300 px-4 py-3 text-sm resize-none min-h-[44px] max-h-32"
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <Button variant="ghost" size="sm" className="text-gray-500">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Image className="w-5 h-5" />
             </Button>
           </div>
           
-          <Button variant="ghost" size="sm" className="text-gray-500">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
+          >
             <Mic className="w-5 h-5" />
           </Button>
           
-          <Button className="bg-green-600 hover:bg-green-700 rounded-full p-2">
-            <Send className="w-4 h-4" />
+          <Button 
+            className="bg-[#00a884] hover:bg-[#005c4b] rounded-full p-3 shadow-lg"
+            onClick={handleSendMessage}
+          >
+            <Send className="w-4 h-4 text-white" />
           </Button>
         </div>
+        
+        {/* Hidden file input */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageUpload}
+          className="hidden"
+        />
       </div>
     </div>
   );
