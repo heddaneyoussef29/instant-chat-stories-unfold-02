@@ -14,9 +14,10 @@ interface Message {
   id: string;
   sender: 'man' | 'woman';
   content: string;
-  type?: 'text' | 'money' | 'emoji';
+  type?: 'text' | 'money' | 'emoji' | 'image';
   amount?: number;
   currency?: string;
+  imageUrl?: string;
 }
 
 interface Participant {
@@ -71,6 +72,23 @@ const Index = () => {
     toast({
       title: isRequest ? "طلب تحويل مالي" : "تحويل مالي",
       description: `تم إضافة ${isRequest ? 'طلب' : ''} تحويل ${amount} ${currency}`,
+    });
+  };
+
+  const addImageMessage = (imageUrl: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      sender: 'man',
+      content: 'صورة',
+      type: 'image',
+      imageUrl
+    };
+    
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    
+    toast({
+      title: "صورة جديدة",
+      description: "تم إضافة صورة للمحادثة",
     });
   };
 
@@ -221,6 +239,7 @@ const Index = () => {
             onEmojiSelect={handleEmojiSelect}
             onMoneyTransfer={handleMoneyTransfer}
             onMoneyRequest={addMoneyMessage}
+            onImageAdd={addImageMessage}
           />
 
           <MessagesList

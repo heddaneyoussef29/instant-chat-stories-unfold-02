@@ -1,48 +1,112 @@
 
 import { Button } from '@/components/ui/button';
-import { DollarSign } from 'lucide-react';
+import { Smile, DollarSign, Gift, Image } from 'lucide-react';
 import EmojiPicker from '@/components/EmojiPicker';
 import MoneyTransfer from '@/components/MoneyTransfer';
+import { useState, useRef } from 'react';
 
 interface ActionBarProps {
   onEmojiSelect: (emoji: string, type: 'emoji' | 'reaction') => void;
   onMoneyTransfer: (amount: number, currency: string) => void;
   onMoneyRequest: (sender: 'man' | 'woman', amount: number, currency: string, isRequest: boolean) => void;
+  onImageAdd?: (imageUrl: string) => void;
 }
 
-const ActionBar = ({ onEmojiSelect, onMoneyTransfer, onMoneyRequest }: ActionBarProps) => {
+const ActionBar = ({ onEmojiSelect, onMoneyTransfer, onMoneyRequest, onImageAdd }: ActionBarProps) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMoneyTransfer, setShowMoneyTransfer] = useState(false);
+  const [showMoneyRequest, setShowMoneyRequest] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && onImageAdd) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        onImageAdd(imageUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 rounded-2xl p-4 mb-8 border border-purple-200/30 dark:border-purple-700/30">
-      <div className="flex justify-center items-center space-x-4">
-        <EmojiPicker onEmojiSelect={onEmojiSelect} />
-        <MoneyTransfer onMoneyTransfer={onMoneyTransfer} />
+    <div className="mb-8">
+      <div className="bg-gradient-to-r from-purple-100 via-pink-50 to-blue-100 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-blue-900/30 rounded-3xl p-6 border border-purple-200/50 dark:border-purple-700/50 shadow-lg">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">
+          إضافة تفاعلات وأموال للمحادثة
+        </h2>
         
-        {/* Money Request Buttons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap justify-center gap-4">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onMoneyRequest('woman', 100, 'USD', true)}
-            className="text-orange-500 hover:text-orange-600 dark:text-orange-400"
-            title="طلب مال من المرأة"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
           >
-            <DollarSign className="w-5 h-5" />
-            <span className="text-xs ml-1">طلب</span>
+            <Smile className="w-5 h-5 mr-2" />
+            😊
           </Button>
+
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onMoneyRequest('man', 100, 'USD', false)}
-            className="text-green-500 hover:text-green-600 dark:text-green-400"
-            title="إرسال مال من الرجل"
+            onClick={() => setShowMoneyTransfer(!showMoneyTransfer)}
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
           >
-            <DollarSign className="w-5 h-5" />
-            <span className="text-xs ml-1">إرسال</span>
+            <DollarSign className="w-5 h-5 mr-2" />
+            إرسال
+          </Button>
+
+          <Button
+            onClick={() => setShowMoneyRequest(!showMoneyRequest)}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+          >
+            <Gift className="w-5 h-5 mr-2" />
+            طلب
+          </Button>
+
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+          >
+            <Image className="w-5 h-5 mr-2" />
+            صورة
           </Button>
         </div>
-        
-        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-        <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">إضافة تفاعلات وأموال للمحادثة</span>
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {showEmojiPicker && (
+          <div className="mt-6">
+            <EmojiPicker onEmojiSelect={onEmojiSelect} />
+          </div>
+        )}
+
+        {showMoneyTransfer && (
+          <div className="mt-6">
+            <MoneyTransfer
+              onTransfer={onMoneyTransfer}
+              title="إرسال مال"
+              buttonText="إرسال المال"
+              buttonColor="from-green-500 to-emerald-500"
+            />
+          </div>
+        )}
+
+        {showMoneyRequest && (
+          <div className="mt-6">
+            <MoneyTransfer
+              onTransfer={(amount, currency) => onMoneyRequest('woman', amount, currency, true)}
+              title="طلب مال"
+              buttonText="طلب المال"
+              buttonColor="from-orange-500 to-red-500"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
