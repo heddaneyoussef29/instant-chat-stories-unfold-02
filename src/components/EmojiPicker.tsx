@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Smile, Heart, ThumbsUp, Angry, Laugh, Sad } from 'lucide-react';
+import { Smile } from 'lucide-react';
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string, type: 'emoji' | 'reaction') => void;
