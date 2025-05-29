@@ -7,9 +7,10 @@ interface Message {
   id: string;
   sender: 'man' | 'woman';
   content: string;
-  type?: 'text' | 'money' | 'emoji';
+  type?: 'text' | 'money' | 'emoji' | 'image';
   amount?: number;
   currency?: string;
+  imageUrl?: string;
 }
 
 interface MessagesListProps {

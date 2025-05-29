@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -31,6 +30,7 @@ interface ChatData {
 const ChatPage = () => {
   const navigate = useNavigate();
   const [chatData, setChatData] = useState<ChatData | null>(null);
+  const [chatBackground, setChatBackground] = useState<string | null>(null);
   const [displayedMessages, setDisplayedMessages] = useState<Message[]>([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
@@ -42,7 +42,7 @@ const ChatPage = () => {
   // Play notification sound
   const playNotificationSound = () => {
     try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
       audio.volume = 0.3;
       audio.play().catch(() => {});
     } catch (error) {
@@ -59,8 +59,11 @@ const ChatPage = () => {
     }
 
     try {
-      const data: ChatData = JSON.parse(storedData);
+      const data = JSON.parse(storedData);
       setChatData(data);
+      if (data.background) {
+        setChatBackground(data.background);
+      }
     } catch (error) {
       console.error('Error parsing chat data:', error);
       navigate('/');
@@ -325,7 +328,18 @@ const ChatPage = () => {
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 pt-24 pb-24 bg-[#efeae2]">
+      <div 
+        className="flex-1 overflow-y-auto p-4 pt-24 pb-24"
+        style={{
+          backgroundImage: chatBackground 
+            ? `linear-gradient(rgba(239, 234, 226, 0.7), rgba(239, 234, 226, 0.7)), url(${chatBackground})`
+            : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: chatBackground ? undefined : '#efeae2'
+        }}
+      >
         {displayedMessages.map((message) => (
           <div key={message.id}>
             {message.type === 'money' ? renderMoneyMessage(message) : 

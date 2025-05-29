@@ -1,14 +1,12 @@
-
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import AnimatedReaction from '@/components/AnimatedReaction';
 import AppHeader from '@/components/AppHeader';
 import ParticipantProfile from '@/components/ParticipantProfile';
-import ActionBar from '@/components/ActionBar';
 import MessagesList from '@/components/MessagesList';
+import ActionBar from '@/components/ActionBar';
+import BackgroundSettings from '@/components/BackgroundSettings';
+import { Button } from '@/components/ui/button';
+import { Play, Sparkles } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -27,55 +25,103 @@ interface Participant {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [man, setMan] = useState<Participant>({ name: '', profilePicture: '' });
-  const [woman, setWoman] = useState<Participant>({ name: '', profilePicture: '' });
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'man', content: 'السلام عليكم', type: 'text' },
-    { id: '2', sender: 'woman', content: 'وعليكم السلام', type: 'text' },
-    { id: '3', sender: 'man', content: 'كيف حالك؟', type: 'text' },
-    { id: '4', sender: 'woman', content: 'الحمد لله بخير', type: 'text' }
-  ]);
-  const [animatedReaction, setAnimatedReaction] = useState<string | null>(null);
+  
+  const [participants, setParticipants] = useState<{
+    man: Participant;
+    woman: Participant;
+  }>({
+    man: {
+      name: 'أحمد محمد',
+      profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+    },
+    woman: {
+      name: 'فاطمة علي',
+      profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b5bc?w=150&h=150&fit=crop&crop=face'
+    }
+  });
 
-  const addMessage = () => {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      sender: 'man',
+      content: 'السلام عليكم ورحمة الله وبركاته',
+      type: 'text'
+    },
+    {
+      id: '2',
+      sender: 'woman',
+      content: 'وعليكم السلام ورحمة الله وبركاته، أهلاً وسهلاً',
+      type: 'text'
+    }
+  ]);
+
+  const [chatBackground, setChatBackground] = useState<string | null>(null);
+
+  const handleAddMessage = () => {
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'man',
-      content: '',
+      content: 'رسالة جديدة',
       type: 'text'
     };
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    
-    toast({
-      title: "رسالة جديدة",
-      description: "تم إضافة رسالة جديدة بنجاح",
-    });
+    setMessages([...messages, newMessage]);
   };
 
-  const addMoneyMessage = (sender: 'man' | 'woman', amount: number, currency: string, isRequest: boolean = false) => {
-    const content = isRequest 
-      ? `طلب تحويل مالي: ${amount} ${currency}` 
-      : `تحويل مالي: ${amount} ${currency}`;
-    
+  const handleUpdateMessage = (id: string, field: keyof Message, value: string | number) => {
+    setMessages(messages.map(msg => 
+      msg.id === id ? { ...msg, [field]: value } : msg
+    ));
+  };
+
+  const handleRemoveMessage = (id: string) => {
+    setMessages(messages.filter(msg => msg.id !== id));
+  };
+
+  const handleUpdateProfile = (type: 'man' | 'woman', field: keyof Participant, value: string) => {
+    setParticipants(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleAddEmoji = (emoji: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
-      sender,
-      content,
+      sender: 'man',
+      content: emoji,
+      type: 'emoji'
+    };
+    setMessages([...messages, newMessage]);
+  };
+
+  const handleSendMoney = (amount: number, currency: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      sender: 'man',
+      content: `تم إرسال ${amount} ${currency} بنجاح! 💰`,
       type: 'money',
       amount,
       currency
     };
-    
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    
-    toast({
-      title: isRequest ? "طلب تحويل مالي" : "تحويل مالي",
-      description: `تم إضافة ${isRequest ? 'طلب' : ''} تحويل ${amount} ${currency}`,
-    });
+    setMessages([...messages, newMessage]);
   };
 
-  const addImageMessage = (imageUrl: string) => {
+  const handleRequestMoney = (amount: number, currency: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      sender: 'man',
+      content: `طلب تحويل ${amount} ${currency} 💸`,
+      type: 'money',
+      amount,
+      currency
+    };
+    setMessages([...messages, newMessage]);
+  };
+
+  const handleAddImage = (imageUrl: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'man',
@@ -83,184 +129,67 @@ const Index = () => {
       type: 'image',
       imageUrl
     };
-    
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-    
-    toast({
-      title: "صورة جديدة",
-      description: "تم إضافة صورة للمحادثة",
-    });
+    setMessages([...messages, newMessage]);
   };
 
-  const updateMessage = (id: string, field: keyof Message, value: string | number) => {
-    setMessages(prevMessages => prevMessages.map(msg => 
-      msg.id === id ? { ...msg, [field]: value } : msg
-    ));
-  };
-
-  const removeMessage = (id: string) => {
-    setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
-    
-    toast({
-      title: "حذف الرسالة",
-      description: "تم حذف الرسالة بنجاح",
-    });
-  };
-
-  const handleEmojiSelect = (emoji: string, type: 'emoji' | 'reaction') => {
-    if (type === 'reaction') {
-      setAnimatedReaction(emoji);
-    }
-    
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'man',
-      content: emoji,
-      type: 'emoji'
-    };
-    setMessages(prevMessages => [...prevMessages, newMessage]);
-  };
-
-  const handleMoneyTransfer = (amount: number, currency: string) => {
-    addMoneyMessage('man', amount, currency, false);
-  };
-
-  const clearLocalStorageIfNeeded = () => {
-    try {
-      // Clear any existing chat data to free up space
-      localStorage.removeItem('chatData');
-      
-      // Try to clear other potential large items
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key !== 'chatData') {
-          try {
-            const item = localStorage.getItem(key);
-            if (item && item.length > 10000) { // Remove items larger than 10KB
-              localStorage.removeItem(key);
-            }
-          } catch (e) {
-            // Ignore errors when checking individual items
-          }
-        }
-      });
-    } catch (e) {
-      console.error('Error clearing localStorage:', e);
-    }
-  };
-
-  const startConversation = () => {
-    if (!man.name || !woman.name || messages.length === 0) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleStartChat = () => {
     const chatData = {
-      man,
-      woman,
-      messages: messages.filter(msg => msg.content.trim() !== '')
+      man: participants.man,
+      woman: participants.woman,
+      messages: messages,
+      background: chatBackground
     };
-
-    try {
-      // Store conversation data in localStorage
-      localStorage.setItem('chatData', JSON.stringify(chatData));
-      
-      // Navigate to chat page
-      navigate('/chat');
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-      
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-        // Try to clear localStorage and retry
-        clearLocalStorageIfNeeded();
-        
-        try {
-          localStorage.setItem('chatData', JSON.stringify(chatData));
-          navigate('/chat');
-        } catch (retryError) {
-          console.error('Retry failed:', retryError);
-          toast({
-            title: "Storage Error",
-            description: "Unable to save conversation data. Please try refreshing the page.",
-            variant: "destructive"
-          });
-        }
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to start conversation. Please try again.",
-          variant: "destructive"
-        });
-      }
-    }
+    
+    localStorage.setItem('chatData', JSON.stringify(chatData));
+    navigate('/chat');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 p-4 transition-all duration-500">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-16 h-16 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full opacity-20 animate-bounce"></div>
-        <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full opacity-20 animate-pulse"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900">
+      <AppHeader />
+      
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <ParticipantProfile
+            type="man"
+            participant={participants.man}
+            onUpdate={handleUpdateProfile}
+          />
+          <ParticipantProfile
+            type="woman"
+            participant={participants.woman}
+            onUpdate={handleUpdateProfile}
+          />
+        </div>
 
-      {/* Animated Reaction Overlay */}
-      {animatedReaction && (
-        <AnimatedReaction
-          emoji={animatedReaction}
-          onComplete={() => setAnimatedReaction(null)}
+        <BackgroundSettings
+          onBackgroundChange={setChatBackground}
+          currentBackground={chatBackground}
         />
-      )}
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20 dark:border-gray-700/20">
-          
-          <AppHeader />
+        <ActionBar
+          onAddEmoji={handleAddEmoji}
+          onSendMoney={handleSendMoney}
+          onRequestMoney={handleRequestMoney}
+          onAddImage={handleAddImage}
+        />
 
-          {/* Participants Section */}
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <ParticipantProfile
-              type="man"
-              participant={man}
-              onUpdate={setMan}
-            />
-            <ParticipantProfile
-              type="woman"
-              participant={woman}
-              onUpdate={setWoman}
-            />
-          </div>
+        <MessagesList
+          messages={messages}
+          onAddMessage={handleAddMessage}
+          onUpdateMessage={handleUpdateMessage}
+          onRemoveMessage={handleRemoveMessage}
+        />
 
-          <ActionBar
-            onEmojiSelect={handleEmojiSelect}
-            onMoneyTransfer={handleMoneyTransfer}
-            onMoneyRequest={addMoneyMessage}
-            onImageAdd={addImageMessage}
-          />
-
-          <MessagesList
-            messages={messages}
-            onAddMessage={addMessage}
-            onUpdateMessage={updateMessage}
-            onRemoveMessage={removeMessage}
-          />
-
-          {/* Start Conversation Button */}
-          <div className="mt-8 text-center">
-            <Button
-              onClick={startConversation}
-              className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 hover:from-green-600 hover:via-blue-600 hover:to-purple-600 text-white px-12 py-4 text-xl font-bold rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 animate-pulse"
-              size="lg"
-            >
-              <Sparkles className="w-6 h-6 mr-3" />
-              بدء المحادثة الإبداعية
-              <Sparkles className="w-6 h-6 ml-3" />
-            </Button>
-          </div>
+        <div className="flex justify-center pt-8">
+          <Button
+            onClick={handleStartChat}
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-12 py-4 text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 font-bold"
+          >
+            <Play className="w-6 h-6 mr-3" />
+            بدء المحادثة المباشرة
+            <Sparkles className="w-6 h-6 ml-3" />
+          </Button>
         </div>
       </div>
     </div>
