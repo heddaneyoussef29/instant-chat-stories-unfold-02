@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, Trash2, User, MessageSquare, Sparkles, Camera } from 'lucide-react';
+import { Plus, Trash2, User, MessageSquare, Sparkles, Camera, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import DarkModeToggle from '@/components/DarkModeToggle';
@@ -46,17 +46,49 @@ const Index = () => {
       content: '',
       type: 'text'
     };
-    setMessages([...messages, newMessage]);
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    
+    toast({
+      title: "رسالة جديدة",
+      description: "تم إضافة رسالة جديدة بنجاح",
+    });
   };
 
-  const updateMessage = (id: string, field: keyof Message, value: string) => {
-    setMessages(messages.map(msg => 
+  const addMoneyMessage = (sender: 'man' | 'woman', amount: number, currency: string, isRequest: boolean = false) => {
+    const content = isRequest 
+      ? `طلب تحويل مالي: ${amount} ${currency}` 
+      : `تحويل مالي: ${amount} ${currency}`;
+    
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      sender,
+      content,
+      type: 'money',
+      amount,
+      currency
+    };
+    
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    
+    toast({
+      title: isRequest ? "طلب تحويل مالي" : "تحويل مالي",
+      description: `تم إضافة ${isRequest ? 'طلب' : ''} تحويل ${amount} ${currency}`,
+    });
+  };
+
+  const updateMessage = (id: string, field: keyof Message, value: string | number) => {
+    setMessages(prevMessages => prevMessages.map(msg => 
       msg.id === id ? { ...msg, [field]: value } : msg
     ));
   };
 
   const removeMessage = (id: string) => {
-    setMessages(messages.filter(msg => msg.id !== id));
+    setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
+    
+    toast({
+      title: "حذف الرسالة",
+      description: "تم حذف الرسالة بنجاح",
+    });
   };
 
   const handleImageUpload = (type: 'man' | 'woman', event: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,19 +118,11 @@ const Index = () => {
       content: emoji,
       type: 'emoji'
     };
-    setMessages([...messages, newMessage]);
+    setMessages(prevMessages => [...prevMessages, newMessage]);
   };
 
   const handleMoneyTransfer = (amount: number, currency: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'man',
-      content: `💰 Money Transfer: ${amount} ${currency}`,
-      type: 'money',
-      amount,
-      currency
-    };
-    setMessages([...messages, newMessage]);
+    addMoneyMessage('man', amount, currency, false);
   };
 
   const clearLocalStorageIfNeeded = () => {
@@ -306,6 +330,31 @@ const Index = () => {
             <div className="flex justify-center items-center space-x-4">
               <EmojiPicker onEmojiSelect={handleEmojiSelect} />
               <MoneyTransfer onMoneyTransfer={handleMoneyTransfer} />
+              
+              {/* New Money Request Buttons */}
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addMoneyMessage('woman', 100, 'USD', true)}
+                  className="text-orange-500 hover:text-orange-600 dark:text-orange-400"
+                  title="طلب مال من المرأة"
+                >
+                  <DollarSign className="w-5 h-5" />
+                  <span className="text-xs ml-1">طلب</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addMoneyMessage('man', 100, 'USD', false)}
+                  className="text-green-500 hover:text-green-600 dark:text-green-400"
+                  title="إرسال مال من الرجل"
+                >
+                  <DollarSign className="w-5 h-5" />
+                  <span className="text-xs ml-1">إرسال</span>
+                </Button>
+              </div>
+              
               <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
               <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">إضافة تفاعلات وأموال للمحادثة</span>
             </div>
@@ -336,14 +385,21 @@ const Index = () => {
                         <Label className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                           الرسالة {index + 1}
                         </Label>
-                        <select
-                          value={message.sender}
-                          onChange={(e) => updateMessage(message.id, 'sender', e.target.value)}
-                          className="px-3 py-1 bg-white/80 dark:bg-gray-600/80 border border-gray-300 dark:border-gray-500 rounded-lg text-sm font-medium"
-                        >
-                          <option value="man">الرجل</option>
-                          <option value="woman">المرأة</option>
-                        </select>
+                        <div className="flex items-center space-x-2">
+                          {message.type === 'money' && (
+                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                              💰 مالية
+                            </span>
+                          )}
+                          <select
+                            value={message.sender}
+                            onChange={(e) => updateMessage(message.id, 'sender', e.target.value)}
+                            className="px-3 py-1 bg-white/80 dark:bg-gray-600/80 border border-gray-300 dark:border-gray-500 rounded-lg text-sm font-medium"
+                          >
+                            <option value="man">الرجل</option>
+                            <option value="woman">المرأة</option>
+                          </select>
+                        </div>
                       </div>
                       <Textarea
                         value={message.content}
@@ -353,10 +409,30 @@ const Index = () => {
                         dir="rtl"
                       />
                       {message.type === 'money' && (
-                        <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
-                          <span className="text-sm font-medium">
-                            💰 تحويل مالي: {message.amount} {message.currency}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
+                            <span className="text-sm font-medium">
+                              💰 {message.content.includes('طلب') ? 'طلب' : 'تحويل'} مالي: {message.amount} {message.currency}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="number"
+                              value={message.amount || ''}
+                              onChange={(e) => updateMessage(message.id, 'amount', parseFloat(e.target.value) || 0)}
+                              className="w-20 text-sm"
+                              placeholder="المبلغ"
+                            />
+                            <select
+                              value={message.currency || 'USD'}
+                              onChange={(e) => updateMessage(message.id, 'currency', e.target.value)}
+                              className="px-2 py-1 bg-white/80 dark:bg-gray-600/80 border border-gray-300 dark:border-gray-500 rounded text-sm"
+                            >
+                              <option value="USD">USD</option>
+                              <option value="EUR">EUR</option>
+                              <option value="SAR">SAR</option>
+                            </select>
+                          </div>
                         </div>
                       )}
                     </div>
