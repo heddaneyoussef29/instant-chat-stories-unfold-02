@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, Trash2, User, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -21,6 +21,7 @@ interface Participant {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [man, setMan] = useState<Participant>({ name: '', profilePicture: '' });
   const [woman, setWoman] = useState<Participant>({ name: '', profilePicture: '' });
   const [messages, setMessages] = useState<Message[]>([
@@ -65,21 +66,78 @@ const Index = () => {
     }
   };
 
+  const clearLocalStorageIfNeeded = () => {
+    try {
+      // Clear any existing chat data to free up space
+      localStorage.removeItem('chatData');
+      
+      // Try to clear other potential large items
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key !== 'chatData') {
+          try {
+            const item = localStorage.getItem(key);
+            if (item && item.length > 10000) { // Remove items larger than 10KB
+              localStorage.removeItem(key);
+            }
+          } catch (e) {
+            // Ignore errors when checking individual items
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Error clearing localStorage:', e);
+    }
+  };
+
   const startConversation = () => {
     if (!man.name || !woman.name || messages.length === 0) {
-      alert('Please fill in all required fields');
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
       return;
     }
 
-    // Store conversation data in localStorage
-    localStorage.setItem('chatData', JSON.stringify({
+    const chatData = {
       man,
       woman,
       messages: messages.filter(msg => msg.content.trim() !== '')
-    }));
+    };
 
-    // Navigate to chat page
-    navigate('/chat');
+    try {
+      // Store conversation data in localStorage
+      localStorage.setItem('chatData', JSON.stringify(chatData));
+      
+      // Navigate to chat page
+      navigate('/chat');
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+      
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        // Try to clear localStorage and retry
+        clearLocalStorageIfNeeded();
+        
+        try {
+          localStorage.setItem('chatData', JSON.stringify(chatData));
+          navigate('/chat');
+        } catch (retryError) {
+          console.error('Retry failed:', retryError);
+          toast({
+            title: "Storage Error",
+            description: "Unable to save conversation data. Please try refreshing the page.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to start conversation. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   return (
