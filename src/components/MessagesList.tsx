@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Plus, Sparkles } from 'lucide-react';
 import MessageEditor from '@/components/MessageEditor';
@@ -11,6 +10,7 @@ interface Message {
   amount?: number;
   currency?: string;
   imageUrl?: string;
+  isRead?: boolean;
 }
 
 interface MessagesListProps {

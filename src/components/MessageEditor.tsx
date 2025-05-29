@@ -13,6 +13,7 @@ interface Message {
   amount?: number;
   currency?: string;
   imageUrl?: string;
+  isRead?: boolean;
 }
 
 interface MessageEditorProps {

@@ -14,6 +14,7 @@ interface Message {
   amount?: number;
   currency?: string;
   imageUrl?: string;
+  isRead?: boolean;
 }
 
 interface Participant {
@@ -24,7 +25,7 @@ interface Participant {
 interface ChatData {
   man: Participant;
   woman: Participant;
-  messages: Omit<Message, 'timestamp'>[];
+  messages: Omit<Message, 'timestamp' | 'isRead'>[];
 }
 
 const ChatPage = () => {
@@ -82,7 +83,8 @@ const ChatPage = () => {
       setTimeout(() => {
         const newMessage: Message = {
           ...chatData.messages[currentMessageIndex],
-          timestamp: new Date()
+          timestamp: new Date(),
+          isRead: false
         };
         
         setDisplayedMessages(prev => [...prev, newMessage]);
@@ -92,6 +94,17 @@ const ChatPage = () => {
         
         // Play notification sound for new messages
         playNotificationSound();
+
+        // Mark message as read after 3 seconds if it's from woman
+        if (newMessage.sender === 'woman') {
+          setTimeout(() => {
+            setDisplayedMessages(prev => 
+              prev.map(msg => 
+                msg.id === newMessage.id ? { ...msg, isRead: true } : msg
+              )
+            );
+          }, 3000);
+        }
       }, 2000);
     }, currentMessageIndex === 0 ? 1000 : 3000);
 
@@ -115,10 +128,20 @@ const ChatPage = () => {
           content: 'صورة',
           timestamp: new Date(),
           type: 'image',
-          imageUrl
+          imageUrl,
+          isRead: false
         };
         setDisplayedMessages(prev => [...prev, newMessage]);
         playNotificationSound();
+
+        // Mark as read after 2 seconds
+        setTimeout(() => {
+          setDisplayedMessages(prev => 
+            prev.map(msg => 
+              msg.id === newMessage.id ? { ...msg, isRead: true } : msg
+            )
+          );
+        }, 2000);
       };
       reader.readAsDataURL(file);
     }
@@ -131,11 +154,21 @@ const ChatPage = () => {
         sender: 'man',
         content: messageInput,
         timestamp: new Date(),
-        type: 'text'
+        type: 'text',
+        isRead: false
       };
       setDisplayedMessages(prev => [...prev, newMessage]);
       setMessageInput('');
       playNotificationSound();
+
+      // Mark as read after 2 seconds
+      setTimeout(() => {
+        setDisplayedMessages(prev => 
+          prev.map(msg => 
+            msg.id === newMessage.id ? { ...msg, isRead: true } : msg
+          )
+        );
+      }, 2000);
     }
   };
 
@@ -153,6 +186,23 @@ const ChatPage = () => {
       minute: '2-digit', 
       hour12: false 
     });
+  };
+
+  const renderReadStatus = (message: Message) => {
+    if (message.sender === 'man') {
+      return (
+        <div className="flex items-center justify-end mt-1 space-x-1">
+          <span className="text-xs text-gray-400">
+            {formatTime(message.timestamp)}
+          </span>
+          <div className="flex space-x-0.5">
+            <div className={`w-2 h-0.5 ${message.isRead ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+            <div className={`w-2 h-0.5 ${message.isRead ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   const renderMoneyMessage = (message: Message) => {
@@ -250,9 +300,12 @@ const ChatPage = () => {
               className="max-w-full h-auto max-h-64 object-cover"
             />
             <div className={`px-3 py-1 ${isFromMan ? 'text-white' : 'text-gray-800'}`}>
-              <p className="text-xs opacity-70">
-                {formatTime(message.timestamp)}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs opacity-70">
+                  {formatTime(message.timestamp)}
+                </p>
+                {renderReadStatus(message)}
+              </div>
             </div>
           </div>
         </div>
@@ -280,9 +333,12 @@ const ChatPage = () => {
             }`}
           >
             <p className="text-sm">{message.content}</p>
-            <p className={`text-xs mt-1 ${isFromMan ? 'text-gray-300' : 'text-gray-500'}`}>
-              {formatTime(message.timestamp)}
-            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className={`text-xs ${isFromMan ? 'text-gray-300' : 'text-gray-500'}`}>
+                {formatTime(message.timestamp)}
+              </p>
+              {renderReadStatus(message)}
+            </div>
           </div>
         </div>
       </div>
