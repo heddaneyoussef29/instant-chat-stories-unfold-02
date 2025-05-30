@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Loader2, MessageSquare, Users, UserCheck } from 'lucide-react';
+import { Sparkles, Loader2, MessageSquare, Users, UserCheck, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AIGeneratorProps {
@@ -19,6 +19,24 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
   const [messageCount, setMessageCount] = useState(60);
   const [isGenerating, setIsGenerating] = useState(false);
   const [extractedNames, setExtractedNames] = useState<{man: string, woman: string} | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const examples = [
+    '"محادثة بين "أحمد" و "سارة" تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص"',
+    '"Conversation between "HAMZA" and "SAMIRA" starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each"',
+    '"محادثة رومانسية طويلة بين "حمزة" و "ليلى"، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة"'
+  ];
+
+  const copyToClipboard = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      toast.success('تم نسخ المثال بنجاح!');
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (error) {
+      toast.error('فشل في نسخ النص');
+    }
+  };
 
   const detectLanguage = (text: string): 'arabic' | 'english' => {
     const arabicPattern = /[\u0600-\u06FF]/;
@@ -284,16 +302,35 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
           <Label htmlFor="message-count" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             عدد الرسائل المطلوبة
           </Label>
-          <Input
-            id="message-count"
-            type="number"
-            value={messageCount}
-            onChange={(e) => setMessageCount(Math.max(10, Math.min(100, parseInt(e.target.value) || 60)))}
-            placeholder="60"
-            className="mt-1"
-            min="10"
-            max="100"
-          />
+          <div className="mt-1 space-y-3">
+            <Input
+              id="message-count"
+              type="number"
+              value={messageCount}
+              onChange={(e) => setMessageCount(Math.max(10, Math.min(100, parseInt(e.target.value) || 60)))}
+              placeholder="60"
+              className="text-lg p-4 text-center font-bold"
+              min="10"
+              max="100"
+              step="10"
+              inputMode="numeric"
+            />
+            
+            {/* أزرار سريعة لاختيار العدد */}
+            <div className="grid grid-cols-3 gap-2">
+              {[20, 40, 60, 80, 100].map((count) => (
+                <Button
+                  key={count}
+                  variant={messageCount === count ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMessageCount(count)}
+                  className="text-sm"
+                >
+                  {count} رسالة
+                </Button>
+              ))}
+            </div>
+          </div>
           <p className="text-xs text-gray-500 mt-1">
             سيتم توزيع الرسائل بالتساوي بين الشخصين ({Math.floor(messageCount / 2)} لكل شخص)
           </p>
@@ -401,26 +438,35 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
               <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2">أمثلة على كتابة الطلب المخصص:</h5>
               
               <div className="space-y-3">
-                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالعربية (مع استخراج الأسماء):</p>
-                  <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    &quot;محادثة بين &quot;أحمد&quot; و &quot;سارة&quot; تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص&quot;
-                  </p>
-                </div>
-                
-                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالإنجليزية (مع استخراج الأسماء):</p>
-                  <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    &quot;Conversation between &quot;HAMZA&quot; and &quot;SAMIRA&quot; starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each&quot;
-                  </p>
-                </div>
-                
-                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال محدد أكثر:</p>
-                  <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    &quot;محادثة رومانسية طويلة بين &quot;حمزة&quot; و &quot;ليلى&quot;، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة&quot;
-                  </p>
-                </div>
+                {examples.map((example, index) => (
+                  <div key={index} className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+                          {index === 0 ? 'مثال بالعربية (مع استخراج الأسماء):' : 
+                           index === 1 ? 'مثال بالإنجليزية (مع استخراج الأسماء):' : 
+                           'مثال محدد أكثر:'}
+                        </p>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded leading-relaxed">
+                          {example}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(example, index)}
+                        className="flex-shrink-0 h-8 w-8 p-0"
+                        disabled={copiedIndex === index}
+                      >
+                        {copiedIndex === index ? (
+                          <Check className="w-3 h-3 text-green-600" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
