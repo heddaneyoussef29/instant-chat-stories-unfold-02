@@ -12,7 +12,7 @@ interface Participant {
 interface ParticipantProfileProps {
   type: 'man' | 'woman';
   participant: Participant;
-  onUpdate: (participant: Participant) => void;
+  onUpdate: (type: 'man' | 'woman', field: keyof Participant, value: string) => void;
 }
 
 const ParticipantProfile = ({ type, participant, onUpdate }: ParticipantProfileProps) => {
@@ -22,7 +22,7 @@ const ParticipantProfile = ({ type, participant, onUpdate }: ParticipantProfileP
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
-        onUpdate({ ...participant, profilePicture: imageUrl });
+        onUpdate(type, 'profilePicture', imageUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -54,7 +54,7 @@ const ParticipantProfile = ({ type, participant, onUpdate }: ParticipantProfileP
             <Input
               id={`${type}-name`}
               value={participant.name}
-              onChange={(e) => onUpdate({ ...participant, name: e.target.value })}
+              onChange={(e) => onUpdate(type, 'name', e.target.value)}
               placeholder={`أدخل اسم ${title}`}
               className={`mt-2 bg-white/50 dark:bg-gray-700/50 border-2 border-${colorScheme}-200/50 dark:border-${colorScheme}-700/50 focus:border-${colorScheme}-400 transition-all`}
             />
