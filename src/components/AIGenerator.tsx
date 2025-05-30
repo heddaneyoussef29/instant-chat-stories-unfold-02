@@ -20,7 +20,6 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
   const [isGenerating, setIsGenerating] = useState(false);
   const [extractedNames, setExtractedNames] = useState<{man: string, woman: string} | null>(null);
 
-  // Function to detect if text is primarily Arabic
   const detectLanguage = (text: string): 'arabic' | 'english' => {
     const arabicPattern = /[\u0600-\u06FF]/;
     const arabicMatches = text.match(/[\u0600-\u06FF]/g) || [];
@@ -30,9 +29,7 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
     return arabicRatio > 0.3 ? 'arabic' : 'english';
   };
 
-  // Function to extract names from text
   const extractNamesFromText = (text: string) => {
-    // Pattern to match names between quotes in Arabic or English
     const arabicPattern = /"([^"]+)"\s*و\s*"([^"]+)"/;
     const englishPattern = /"([^"]+)"\s*and\s*"([^"]+)"/i;
     
@@ -45,14 +42,12 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
       const name1 = match[1].trim();
       const name2 = match[2].trim();
       
-      // Return the names
       return { man: name1, woman: name2 };
     }
     
     return null;
   };
 
-  // Watch for changes in prompt and extract names
   useEffect(() => {
     if (prompt.trim()) {
       const names = extractNamesFromText(prompt);
@@ -62,7 +57,6 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
     }
   }, [prompt]);
 
-  // Function to apply extracted names
   const applyExtractedNames = () => {
     if (extractedNames && onUpdateParticipants) {
       onUpdateParticipants(extractedNames.man, extractedNames.woman);
@@ -85,7 +79,6 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
 
     setIsGenerating(true);
 
-    // Detect language from prompt or use Arabic as default
     const detectedLanguage = type === 'custom' && prompt.trim() ? detectLanguage(prompt) : 'arabic';
     const isArabic = detectedLanguage === 'arabic';
 
@@ -93,7 +86,6 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
     const messagesPerPerson = Math.floor(messageCount / 2);
     
     if (isArabic) {
-      // Arabic prompts
       switch (type) {
         case 'romantic':
           systemPrompt = `أنشئ محادثة رومانسية طويلة ومفصلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). المحادثة يجب أن تتضمن مشاعر الحب والغيرة والمشاكل وتنتهي بمفاجأة جميلة. اجعل المحادثة طبيعية ومتدرجة مع تطور العلاقة.`;
@@ -106,7 +98,6 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
           break;
       }
     } else {
-      // English prompts
       switch (type) {
         case 'romantic':
           systemPrompt = `Create a long and detailed romantic conversation between a man and a woman in English. It should contain ${messageCount} messages (${messagesPerPerson} messages per person). The conversation should include feelings of love, jealousy, problems, and end with a beautiful surprise. Make the conversation natural and progressive with relationship development.`;
@@ -147,7 +138,6 @@ ${isArabic ? 'أرجع النتيجة بصيغة JSON فقط بدون أي نص 
       "content": "${isArabic ? 'نص الرسالة هنا' : 'Message text here'}",
       "type": "text"
     }
-    ${isArabic ? `// ... استمر حتى تصل إلى ${messageCount} رسالة` : `// ... continue until you reach ${messageCount} messages`}
   ]
 }
 
@@ -177,7 +167,7 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
           temperature: 0.8,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 8192, // Increased token limit for longer conversations
+          maxOutputTokens: 8192,
         }
       };
 
@@ -210,13 +200,9 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
         throw new Error('لم يتم استلام رد من الذكاء الاصطناعي');
       }
 
-      // Clean the response and extract JSON
       let cleanedText = generatedText.trim();
-      
-      // Remove markdown code blocks if present
       cleanedText = cleanedText.replace(/```json\s*/g, '').replace(/```\s*/g, '');
       
-      // Find the JSON object
       const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         console.error('No JSON found in response:', cleanedText);
@@ -232,7 +218,6 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
         throw new Error('تنسيق الرسائل غير صحيح');
       }
 
-      // Convert to the expected format with IDs
       const formattedMessages = parsedData.messages.map((msg: any, index: number) => ({
         id: `ai_${Date.now()}_${index}`,
         sender: msg.sender,
@@ -244,7 +229,6 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
       console.log('Formatted messages count:', formattedMessages.length);
       console.log('Requested count:', messageCount);
 
-      // Check if we got the requested number of messages
       if (formattedMessages.length < messageCount * 0.8) {
         toast.warning(`تم توليد ${formattedMessages.length} رسالة من أصل ${messageCount} مطلوبة. جرب تقليل العدد أو تجربة مرة أخرى.`);
       } else {
@@ -323,13 +307,12 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
             id="custom-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="مثال: محادثة بين "أحمد" و "سارة" تتضمن دردشة غيرة وحب ومشاكل تنتهي بمفاجأة..."
+            placeholder="مثال: محادثة بين &quot;أحمد&quot; و &quot;سارة&quot; تتضمن دردشة غيرة وحب ومشاكل تنتهي بمفاجأة..."
             className="mt-1"
             rows={3}
             dir="rtl"
           />
           
-          {/* Display detected language */}
           {prompt.trim() && (
             <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
               {detectLanguage(prompt) === 'arabic' 
@@ -339,7 +322,6 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
             </div>
           )}
           
-          {/* Display extracted names and apply button */}
           {extractedNames && onUpdateParticipants && (
             <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <div className="flex items-center justify-between">
@@ -422,21 +404,21 @@ ${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Retur
                 <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
                   <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالعربية (مع استخراج الأسماء):</p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    "محادثة بين "أحمد" و "سارة" تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص"
+                    &quot;محادثة بين &quot;أحمد&quot; و &quot;سارة&quot; تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص&quot;
                   </p>
                 </div>
                 
                 <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
                   <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالإنجليزية (مع استخراج الأسماء):</p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    "Conversation between "HAMZA" and "SAMIRA" starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each"
+                    &quot;Conversation between &quot;HAMZA&quot; and &quot;SAMIRA&quot; starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each&quot;
                   </p>
                 </div>
                 
                 <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
                   <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال محدد أكثر:</p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    "محادثة رومانسية طويلة بين "حمزة" و "ليلى"، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة"
+                    &quot;محادثة رومانسية طويلة بين &quot;حمزة&quot; و &quot;ليلى&quot;، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة&quot;
                   </p>
                 </div>
               </div>
