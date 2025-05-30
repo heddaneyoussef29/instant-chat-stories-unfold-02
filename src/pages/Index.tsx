@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/AppHeader';
@@ -129,10 +128,10 @@ const Index = () => {
     setMessages([...messages, newMessage]);
   };
 
-  const handleAddImage = (imageUrl: string) => {
+  const handleAddImage = (imageUrl: string, sender: 'man' | 'woman') => {
     const newMessage: Message = {
       id: Date.now().toString(),
-      sender: 'man',
+      sender: sender,
       content: 'صورة',
       type: 'image',
       imageUrl,
