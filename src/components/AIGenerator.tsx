@@ -16,6 +16,7 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
     return localStorage.getItem('gemini_api_key') || '';
   });
   const [prompt, setPrompt] = useState('');
+  const [messageCount, setMessageCount] = useState(60);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const saveApiKey = () => {
@@ -34,19 +35,29 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
     setIsGenerating(true);
 
     let systemPrompt = '';
+    const messagesPerPerson = Math.floor(messageCount / 2);
+    
     switch (type) {
       case 'romantic':
-        systemPrompt = 'أنشئ محادثة رومانسية بين رجل وامرأة باللغة العربية. يجب أن تحتوي على 8-12 رسالة متنوعة ومناسبة ومحترمة.';
+        systemPrompt = `أنشئ محادثة رومانسية طويلة ومفصلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). المحادثة يجب أن تتضمن مشاعر الحب والغيرة والمشاكل وتنتهي بمفاجأة جميلة. اجعل المحادثة طبيعية ومتدرجة مع تطور العلاقة.`;
         break;
       case 'casual':
-        systemPrompt = 'أنشئ محادثة عادية ومرحة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على 8-12 رسالة متنوعة وطبيعية.';
+        systemPrompt = `أنشئ محادثة عادية ومرحة طويلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). اجعل المحادثة طبيعية ومتنوعة.`;
         break;
       case 'custom':
-        systemPrompt = prompt || 'أنشئ محادثة بين رجل وامرأة باللغة العربية.';
+        systemPrompt = prompt || `أنشئ محادثة طويلة بين رجل وامرأة باللغة العربية تحتوي على ${messageCount} رسالة.`;
         break;
     }
 
     const fullPrompt = `${systemPrompt}
+
+تعليمات مهمة جداً:
+- يجب أن تحتوي المحادثة على ${messageCount} رسالة بالضبط
+- ${messagesPerPerson} رسالة للرجل و ${messagesPerPerson} رسالة للمرأة
+- تنويع المرسل بين "man" و "woman" بشكل متتالي أو شبه متتالي
+- اجعل الرسائل متنوعة الطول (قصيرة ومتوسطة وطويلة)
+- استخدم اللغة العربية الطبيعية والمعاصرة
+- المحتوى مناسب ومحترم
 
 أرجع النتيجة بصيغة JSON فقط بدون أي نص إضافي قبل أو بعد JSON:
 {
@@ -61,17 +72,19 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
       "content": "نص الرسالة هنا",
       "type": "text"
     }
+    // ... استمر حتى تصل إلى ${messageCount} رسالة
   ]
 }
 
 تأكد من:
+- إرجاع ${messageCount} رسالة بالضبط
 - تنويع المرسل بين "man" و "woman"
 - استخدام اللغة العربية
 - المحتوى مناسب ومحترم
-- عدد الرسائل بين 8-12 رسالة
 - إرجاع JSON فقط بدون أي نص إضافي`;
 
     console.log('API Key being used:', apiKey.substring(0, 10) + '...');
+    console.log('Requested message count:', messageCount);
     console.log('Full prompt:', fullPrompt);
 
     try {
@@ -85,10 +98,10 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
           }]
         }],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.8,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 8192, // Increased token limit for longer conversations
         }
       };
 
@@ -152,10 +165,17 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
         isRead: false
       }));
 
-      console.log('Formatted messages:', formattedMessages);
+      console.log('Formatted messages count:', formattedMessages.length);
+      console.log('Requested count:', messageCount);
+
+      // Check if we got the requested number of messages
+      if (formattedMessages.length < messageCount * 0.8) {
+        toast.warning(`تم توليد ${formattedMessages.length} رسالة من أصل ${messageCount} مطلوبة. جرب تقليل العدد أو تجربة مرة أخرى.`);
+      } else {
+        toast.success(`تم توليد ${formattedMessages.length} رسالة بنجاح!`);
+      }
 
       onGenerateMessages(formattedMessages);
-      toast.success(`تم توليد ${formattedMessages.length} رسالة بنجاح!`);
 
     } catch (error) {
       console.error('خطأ في توليد المحادثة:', error);
@@ -198,6 +218,25 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
         </div>
 
         <div>
+          <Label htmlFor="message-count" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            عدد الرسائل المطلوبة
+          </Label>
+          <Input
+            id="message-count"
+            type="number"
+            value={messageCount}
+            onChange={(e) => setMessageCount(Math.max(10, Math.min(100, parseInt(e.target.value) || 60)))}
+            placeholder="60"
+            className="mt-1"
+            min="10"
+            max="100"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            سيتم توزيع الرسائل بالتساوي بين الشخصين ({Math.floor(messageCount / 2)} لكل شخص)
+          </p>
+        </div>
+
+        <div>
           <Label htmlFor="custom-prompt" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             طلب مخصص (اختياري)
           </Label>
@@ -205,7 +244,7 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
             id="custom-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="اكتب وصفاً للمحادثة التي تريد توليدها..."
+            placeholder="مثال: محادثة بين AHMED و SARA تتضمن دردشة غيرة وحب ومشاكل تنتهي بمفاجأة..."
             className="mt-1"
             rows={3}
             dir="rtl"
@@ -241,7 +280,7 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
 
           <Button
             onClick={() => generateMessages('custom')}
-            disabled={isGenerating || !apiKey.trim() || !prompt.trim()}
+            disabled={isGenerating || !apiKey.trim()}
             className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
           >
             {isGenerating ? (
@@ -254,10 +293,20 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
         </div>
 
         {isGenerating && (
-          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-            جاري توليد المحادثة... يرجى الانتظار
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400 space-y-2">
+            <p>جاري توليد {messageCount} رسالة... يرجى الانتظار</p>
+            <p className="text-xs">قد يستغرق الأمر بضع دقائق للمحادثات الطويلة</p>
           </div>
         )}
+
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">نصائح للحصول على نتائج أفضل:</h4>
+          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+            <li>• للمحادثات الطويلة (+50 رسالة)، كن صبوراً - قد يستغرق وقتاً أطول</li>
+            <li>• إذا حصلت على رسائل أقل من المطلوب، جرب تقليل العدد إلى 30-40</li>
+            <li>• استخدم الطلب المخصص لتحديد موضوع المحادثة بدقة</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
