@@ -5,6 +5,7 @@ import ParticipantProfile from '@/components/ParticipantProfile';
 import MessagesList from '@/components/MessagesList';
 import ActionBar from '@/components/ActionBar';
 import BackgroundSettings from '@/components/BackgroundSettings';
+import AIGenerator from '@/components/AIGenerator';
 import { Button } from '@/components/ui/button';
 import { Play, Sparkles } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
@@ -20,6 +21,7 @@ const ChatSetup = () => {
     handleAddMessage,
     handleUpdateMessage,
     handleRemoveMessage,
+    handleReplaceMessages,
     handleEmojiSelect,
     handleMoneyTransfer,
     handleMoneyRequest,
@@ -57,6 +59,8 @@ const ChatSetup = () => {
         onBackgroundChange={setChatBackground}
         currentBackground={chatBackground}
       />
+
+      <AIGenerator onGenerateMessages={handleReplaceMessages} />
 
       <ActionBar
         onEmojiSelect={handleEmojiSelect}

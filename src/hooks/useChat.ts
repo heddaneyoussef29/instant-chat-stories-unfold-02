@@ -51,6 +51,10 @@ export const useChat = () => {
     setMessages(messages.filter(msg => msg.id !== id));
   };
 
+  const handleReplaceMessages = (newMessages: Message[]) => {
+    setMessages(newMessages);
+  };
+
   const handleEmojiSelect = (emoji: string, type: 'emoji' | 'reaction') => {
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -123,6 +127,7 @@ export const useChat = () => {
     handleAddMessage,
     handleUpdateMessage,
     handleRemoveMessage,
+    handleReplaceMessages,
     handleEmojiSelect,
     handleMoneyTransfer,
     handleMoneyRequest,
