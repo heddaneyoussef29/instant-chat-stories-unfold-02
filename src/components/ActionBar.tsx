@@ -7,7 +7,7 @@ import { useState, useRef } from 'react';
 
 interface ActionBarProps {
   onEmojiSelect: (emoji: string, type: 'emoji' | 'reaction') => void;
-  onMoneyTransfer: (amount: number, currency: string) => void;
+  onMoneyTransfer: (amount: number, currency: string, sender: 'man' | 'woman') => void;
   onMoneyRequest: (sender: 'man' | 'woman', amount: number, currency: string, isRequest: boolean) => void;
   onImageAdd?: (imageUrl: string, sender: 'man' | 'woman') => void;
 }
@@ -34,8 +34,8 @@ const ActionBar = ({ onEmojiSelect, onMoneyTransfer, onMoneyRequest, onImageAdd 
   };
 
   const handleMoneyTransfer = (amount: number, currency: string) => {
-    // استخدام onMoneyRequest مع isRequest = false للإرسال
-    onMoneyRequest(selectedSender, amount, currency, false);
+    // تمرير المرسل المختار إلى دالة إرسال المال
+    onMoneyTransfer(amount, currency, selectedSender);
     setShowMoneyTransfer(false);
   };
 

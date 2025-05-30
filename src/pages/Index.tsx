@@ -103,11 +103,11 @@ const Index = () => {
     setMessages([...messages, newMessage]);
   };
 
-  const handleMoneyTransfer = (amount: number, currency: string) => {
-    console.log('handleMoneyTransfer called:', { amount, currency });
+  const handleMoneyTransfer = (amount: number, currency: string, sender: 'man' | 'woman') => {
+    console.log('handleMoneyTransfer called:', { amount, currency, sender });
     const newMessage: Message = {
       id: Date.now().toString(),
-      sender: 'man',
+      sender: sender, // استخدام المرسل المختار
       content: `تم إرسال ${amount} ${currency} بنجاح! 💰`,
       type: 'money',
       amount,
