@@ -43,7 +43,7 @@ const ChatPage = () => {
   // Play notification sound
   const playNotificationSound = () => {
     try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
       audio.volume = 0.3;
       audio.play().catch(() => {});
     } catch (error) {
@@ -192,7 +192,7 @@ const ChatPage = () => {
     if (message.sender === 'man') {
       return (
         <div className="flex items-center justify-end mt-1 space-x-1">
-          <span className="text-xs text-gray-400">
+          <span className="text-sm font-bold text-gray-400">
             {formatTime(message.timestamp)}
           </span>
           <div className="flex space-x-0.5">
@@ -229,21 +229,21 @@ const ChatPage = () => {
             {/* Transfer Info */}
             <div className="text-center text-white">
               <div className="flex items-center justify-center space-x-2 mb-3">
-                <Avatar className="w-8 h-8 border-2 border-white/50">
+                <Avatar className="w-12 h-12 border-2 border-white/50">
                   <AvatarImage src={participant.profilePicture} />
-                  <AvatarFallback className="text-green-600 font-bold">{participant.name[0]}</AvatarFallback>
+                  <AvatarFallback className="text-green-600 font-bold text-lg">{participant.name[0]}</AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium opacity-90">{participant.name}</span>
+                <span className="text-lg font-bold opacity-90">{participant.name}</span>
               </div>
               
               <div className="space-y-2">
-                <div className="text-2xl font-bold tracking-wide">
+                <div className="text-3xl font-bold tracking-wide">
                   {message.amount} {message.currency}
                 </div>
-                <div className="text-sm opacity-80 font-medium">
+                <div className="text-lg opacity-80 font-bold">
                   {message.content.includes('طلب') ? '💸 طلب تحويل مالي' : '💰 تم إرسال المال بنجاح'}
                 </div>
-                <div className="text-xs opacity-70">
+                <div className="text-sm font-bold opacity-70">
                   {formatTime(message.timestamp)}
                 </div>
               </div>
@@ -280,11 +280,11 @@ const ChatPage = () => {
     const isFromMan = message.sender === 'man';
     
     return (
-      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'} mb-4`}>
-        <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isFromMan ? 'flex-row-reverse space-x-reverse' : ''}`}>
-          <Avatar className="w-8 h-8">
+      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'} mb-6`}>
+        <div className={`flex items-end space-x-3 max-w-xs lg:max-w-md ${isFromMan ? 'flex-row-reverse space-x-reverse' : ''}`}>
+          <Avatar className="w-12 h-12 border-2 border-gray-300">
             <AvatarImage src={participant.profilePicture} />
-            <AvatarFallback>{participant.name[0]}</AvatarFallback>
+            <AvatarFallback className="text-lg font-bold">{participant.name[0]}</AvatarFallback>
           </Avatar>
           
           <div
@@ -299,9 +299,9 @@ const ChatPage = () => {
               alt="Shared image" 
               className="max-w-full h-auto max-h-64 object-cover"
             />
-            <div className={`px-3 py-1 ${isFromMan ? 'text-white' : 'text-gray-800'}`}>
+            <div className={`px-4 py-2 ${isFromMan ? 'text-white' : 'text-gray-800'}`}>
               <div className="flex items-center justify-between">
-                <p className="text-xs opacity-70">
+                <p className="text-sm font-bold opacity-70">
                   {formatTime(message.timestamp)}
                 </p>
                 {renderReadStatus(message)}
@@ -318,23 +318,23 @@ const ChatPage = () => {
     const isFromMan = message.sender === 'man';
     
     return (
-      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'} mb-4`}>
-        <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isFromMan ? 'flex-row-reverse space-x-reverse' : ''}`}>
-          <Avatar className="w-8 h-8">
+      <div className={`flex ${isFromMan ? 'justify-end' : 'justify-start'} mb-6`}>
+        <div className={`flex items-end space-x-3 max-w-xs lg:max-w-md ${isFromMan ? 'flex-row-reverse space-x-reverse' : ''}`}>
+          <Avatar className="w-12 h-12 border-2 border-gray-300">
             <AvatarImage src={participant.profilePicture} />
-            <AvatarFallback>{participant.name[0]}</AvatarFallback>
+            <AvatarFallback className="text-lg font-bold">{participant.name[0]}</AvatarFallback>
           </Avatar>
           
           <div
-            className={`px-4 py-2 rounded-lg shadow-sm ${
+            className={`px-5 py-3 rounded-lg shadow-sm ${
               isFromMan
                 ? 'bg-[#005c4b] text-white rounded-br-none'
                 : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'
             }`}
           >
-            <p className="text-sm">{message.content}</p>
-            <div className="flex items-center justify-between mt-1">
-              <p className={`text-xs ${isFromMan ? 'text-gray-300' : 'text-gray-500'}`}>
+            <p className="text-lg font-bold leading-relaxed">{message.content}</p>
+            <div className="flex items-center justify-between mt-2">
+              <p className={`text-sm font-bold ${isFromMan ? 'text-gray-300' : 'text-gray-500'}`}>
                 {formatTime(message.timestamp)}
               </p>
               {renderReadStatus(message)}
@@ -358,14 +358,14 @@ const ChatPage = () => {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         
-        <Avatar className="w-10 h-10 border-2 border-white/20">
+        <Avatar className="w-14 h-14 border-2 border-white/20">
           <AvatarImage src={chatData.woman.profilePicture} />
-          <AvatarFallback className="bg-gray-600 text-white">{chatData.woman.name[0]}</AvatarFallback>
+          <AvatarFallback className="bg-gray-600 text-white text-xl font-bold">{chatData.woman.name[0]}</AvatarFallback>
         </Avatar>
         
         <div className="flex-1">
-          <h3 className="font-semibold text-white">{chatData.woman.name}</h3>
-          <p className="text-sm text-gray-200">
+          <h3 className="font-bold text-white text-lg">{chatData.woman.name}</h3>
+          <p className="text-sm font-bold text-gray-200">
             {isTyping && typingSender ? 'typing...' : 'online'}
           </p>
         </div>
@@ -385,7 +385,7 @@ const ChatPage = () => {
 
       {/* Messages Container */}
       <div 
-        className="flex-1 overflow-y-auto p-4 pt-24 pb-24"
+        className="flex-1 overflow-y-auto p-6 pt-28 pb-28"
         style={{
           backgroundImage: chatBackground 
             ? `linear-gradient(rgba(239, 234, 226, 0.7), rgba(239, 234, 226, 0.7)), url(${chatBackground})`
@@ -406,18 +406,18 @@ const ChatPage = () => {
 
         {/* Typing Indicator */}
         {isTyping && typingSender && (
-          <div className={`flex ${typingSender === 'man' ? 'justify-end' : 'justify-start'} mb-4`}>
-            <div className={`flex items-end space-x-2 max-w-xs ${typingSender === 'man' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-              <Avatar className="w-8 h-8">
+          <div className={`flex ${typingSender === 'man' ? 'justify-end' : 'justify-start'} mb-6`}>
+            <div className={`flex items-end space-x-3 max-w-xs ${typingSender === 'man' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <Avatar className="w-12 h-12 border-2 border-gray-300">
                 <AvatarImage src={getParticipantInfo(typingSender).profilePicture} />
-                <AvatarFallback>{getParticipantInfo(typingSender).name[0]}</AvatarFallback>
+                <AvatarFallback className="text-lg font-bold">{getParticipantInfo(typingSender).name[0]}</AvatarFallback>
               </Avatar>
               
-              <div className="bg-gray-200 px-4 py-3 rounded-lg rounded-bl-none">
+              <div className="bg-gray-200 px-5 py-4 rounded-lg rounded-bl-none">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-3 h-3 bg-gray-500 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-3 h-3 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -437,7 +437,7 @@ const ChatPage = () => {
               className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Gift className="w-5 h-5" />
+              <Gift className="w-6 h-6" />
             </Button>
             <Button 
               variant="ghost" 
@@ -445,14 +445,14 @@ const ChatPage = () => {
               className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Camera className="w-5 h-5" />
+              <Camera className="w-6 h-6" />
             </Button>
           </div>
           
           <div className="flex-1 flex items-end space-x-2">
             <Input
               placeholder="Type a message"
-              className="flex-1 rounded-full bg-white border-gray-300 px-4 py-3 text-sm resize-none min-h-[44px] max-h-32"
+              className="flex-1 rounded-full bg-white border-gray-300 px-5 py-4 text-lg font-bold resize-none min-h-[48px] max-h-32"
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
@@ -463,7 +463,7 @@ const ChatPage = () => {
               className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Image className="w-5 h-5" />
+              <Image className="w-6 h-6" />
             </Button>
           </div>
           
@@ -472,14 +472,14 @@ const ChatPage = () => {
             size="sm" 
             className="text-gray-600 hover:bg-gray-200 rounded-full p-2"
           >
-            <Mic className="w-5 h-5" />
+            <Mic className="w-6 h-6" />
           </Button>
           
           <Button 
-            className="bg-[#00a884] hover:bg-[#005c4b] rounded-full p-3 shadow-lg"
+            className="bg-[#00a884] hover:bg-[#005c4b] rounded-full p-4 shadow-lg"
             onClick={handleSendMessage}
           >
-            <Send className="w-4 h-4 text-white" />
+            <Send className="w-5 h-5 text-white" />
           </Button>
         </div>
         
