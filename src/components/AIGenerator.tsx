@@ -48,7 +48,7 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
 
     const fullPrompt = `${systemPrompt}
 
-أرجع النتيجة بصيغة JSON فقط بهذا الشكل:
+أرجع النتيجة بصيغة JSON فقط بدون أي نص إضافي قبل أو بعد JSON:
 {
   "messages": [
     {
@@ -68,41 +68,76 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
 - تنويع المرسل بين "man" و "woman"
 - استخدام اللغة العربية
 - المحتوى مناسب ومحترم
-- عدد الرسائل بين 8-12 رسالة`;
+- عدد الرسائل بين 8-12 رسالة
+- إرجاع JSON فقط بدون أي نص إضافي`;
+
+    console.log('API Key being used:', apiKey.substring(0, 10) + '...');
+    console.log('Full prompt:', fullPrompt);
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+      console.log('API URL:', apiUrl);
+
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: fullPrompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      };
+
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: fullPrompt
-            }]
-          }]
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('API Response:', data);
+
       const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log('Generated text:', generatedText);
       
       if (!generatedText) {
         throw new Error('لم يتم استلام رد من الذكاء الاصطناعي');
       }
 
-      // Extract JSON from the response
-      const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
+      // Clean the response and extract JSON
+      let cleanedText = generatedText.trim();
+      
+      // Remove markdown code blocks if present
+      cleanedText = cleanedText.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+      
+      // Find the JSON object
+      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.error('No JSON found in response:', cleanedText);
         throw new Error('لم يتم العثور على JSON صالح في الرد');
       }
 
+      console.log('Extracted JSON:', jsonMatch[0]);
+
       const parsedData = JSON.parse(jsonMatch[0]);
+      console.log('Parsed data:', parsedData);
       
       if (!parsedData.messages || !Array.isArray(parsedData.messages)) {
         throw new Error('تنسيق الرسائل غير صحيح');
@@ -117,12 +152,14 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
         isRead: false
       }));
 
+      console.log('Formatted messages:', formattedMessages);
+
       onGenerateMessages(formattedMessages);
       toast.success(`تم توليد ${formattedMessages.length} رسالة بنجاح!`);
 
     } catch (error) {
       console.error('خطأ في توليد المحادثة:', error);
-      toast.error('فشل في توليد المحادثة. تأكد من صحة مفتاح API.');
+      toast.error(`فشل في توليد المحادثة: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
@@ -215,6 +252,12 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
             طلب مخصص
           </Button>
         </div>
+
+        {isGenerating && (
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            جاري توليد المحادثة... يرجى الانتظار
+          </div>
+        )}
       </div>
     </div>
   );
