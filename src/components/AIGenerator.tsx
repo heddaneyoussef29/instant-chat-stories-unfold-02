@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +19,16 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
   const [messageCount, setMessageCount] = useState(60);
   const [isGenerating, setIsGenerating] = useState(false);
   const [extractedNames, setExtractedNames] = useState<{man: string, woman: string} | null>(null);
+
+  // Function to detect if text is primarily Arabic
+  const detectLanguage = (text: string): 'arabic' | 'english' => {
+    const arabicPattern = /[\u0600-\u06FF]/;
+    const arabicMatches = text.match(/[\u0600-\u06FF]/g) || [];
+    const totalChars = text.replace(/\s/g, '').length;
+    const arabicRatio = arabicMatches.length / totalChars;
+    
+    return arabicRatio > 0.3 ? 'arabic' : 'english';
+  };
 
   // Function to extract names from text
   const extractNamesFromText = (text: string) => {
@@ -76,56 +85,81 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
 
     setIsGenerating(true);
 
+    // Detect language from prompt or use Arabic as default
+    const detectedLanguage = type === 'custom' && prompt.trim() ? detectLanguage(prompt) : 'arabic';
+    const isArabic = detectedLanguage === 'arabic';
+
     let systemPrompt = '';
     const messagesPerPerson = Math.floor(messageCount / 2);
     
-    switch (type) {
-      case 'romantic':
-        systemPrompt = `أنشئ محادثة رومانسية طويلة ومفصلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). المحادثة يجب أن تتضمن مشاعر الحب والغيرة والمشاكل وتنتهي بمفاجأة جميلة. اجعل المحادثة طبيعية ومتدرجة مع تطور العلاقة.`;
-        break;
-      case 'casual':
-        systemPrompt = `أنشئ محادثة عادية ومرحة طويلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). اجعل المحادثة طبيعية ومتنوعة.`;
-        break;
-      case 'custom':
-        systemPrompt = prompt || `أنشئ محادثة طويلة بين رجل وامرأة باللغة العربية تحتوي على ${messageCount} رسالة.`;
-        break;
+    if (isArabic) {
+      // Arabic prompts
+      switch (type) {
+        case 'romantic':
+          systemPrompt = `أنشئ محادثة رومانسية طويلة ومفصلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). المحادثة يجب أن تتضمن مشاعر الحب والغيرة والمشاكل وتنتهي بمفاجأة جميلة. اجعل المحادثة طبيعية ومتدرجة مع تطور العلاقة.`;
+          break;
+        case 'casual':
+          systemPrompt = `أنشئ محادثة عادية ومرحة طويلة بين رجل وامرأة باللغة العربية. يجب أن تحتوي على ${messageCount} رسالة (${messagesPerPerson} رسالة لكل شخص). اجعل المحادثة طبيعية ومتنوعة.`;
+          break;
+        case 'custom':
+          systemPrompt = prompt || `أنشئ محادثة طويلة بين رجل وامرأة باللغة العربية تحتوي على ${messageCount} رسالة.`;
+          break;
+      }
+    } else {
+      // English prompts
+      switch (type) {
+        case 'romantic':
+          systemPrompt = `Create a long and detailed romantic conversation between a man and a woman in English. It should contain ${messageCount} messages (${messagesPerPerson} messages per person). The conversation should include feelings of love, jealousy, problems, and end with a beautiful surprise. Make the conversation natural and progressive with relationship development.`;
+          break;
+        case 'casual':
+          systemPrompt = `Create a long and fun casual conversation between a man and a woman in English. It should contain ${messageCount} messages (${messagesPerPerson} messages per person). Make the conversation natural and varied.`;
+          break;
+        case 'custom':
+          systemPrompt = prompt || `Create a long conversation between a man and a woman in English containing ${messageCount} messages.`;
+          break;
+      }
     }
+
+    const languageInstructions = isArabic 
+      ? `- استخدم اللغة العربية الطبيعية والمعاصرة`
+      : `- Use natural and contemporary English language`;
 
     const fullPrompt = `${systemPrompt}
 
-تعليمات مهمة جداً:
-- يجب أن تحتوي المحادثة على ${messageCount} رسالة بالضبط
-- ${messagesPerPerson} رسالة للرجل و ${messagesPerPerson} رسالة للمرأة
-- تنويع المرسل بين "man" و "woman" بشكل متتالي أو شبه متتالي
-- اجعل الرسائل متنوعة الطول (قصيرة ومتوسطة وطويلة)
-- استخدم اللغة العربية الطبيعية والمعاصرة
-- المحتوى مناسب ومحترم
+${isArabic ? 'تعليمات مهمة جداً:' : 'Very important instructions:'}
+${isArabic ? `- يجب أن تحتوي المحادثة على ${messageCount} رسالة بالضبط` : `- The conversation must contain exactly ${messageCount} messages`}
+${isArabic ? `- ${messagesPerPerson} رسالة للرجل و ${messagesPerPerson} رسالة للمرأة` : `- ${messagesPerPerson} messages for the man and ${messagesPerPerson} messages for the woman`}
+${isArabic ? '- تنويع المرسل بين "man" و "woman" بشكل متتالي أو شبه متتالي' : '- Alternate the sender between "man" and "woman" consecutively or semi-consecutively'}
+${isArabic ? '- اجعل الرسائل متنوعة الطول (قصيرة ومتوسطة وطويلة)' : '- Make messages varied in length (short, medium, and long)'}
+${languageInstructions}
+${isArabic ? '- المحتوى مناسب ومحترم' : '- Content should be appropriate and respectful'}
 
-أرجع النتيجة بصيغة JSON فقط بدون أي نص إضافي قبل أو بعد JSON:
+${isArabic ? 'أرجع النتيجة بصيغة JSON فقط بدون أي نص إضافي قبل أو بعد JSON:' : 'Return the result in JSON format only without any additional text before or after JSON:'}
 {
   "messages": [
     {
       "sender": "man",
-      "content": "نص الرسالة هنا",
+      "content": "${isArabic ? 'نص الرسالة هنا' : 'Message text here'}",
       "type": "text"
     },
     {
       "sender": "woman", 
-      "content": "نص الرسالة هنا",
+      "content": "${isArabic ? 'نص الرسالة هنا' : 'Message text here'}",
       "type": "text"
     }
-    // ... استمر حتى تصل إلى ${messageCount} رسالة
+    ${isArabic ? `// ... استمر حتى تصل إلى ${messageCount} رسالة` : `// ... continue until you reach ${messageCount} messages`}
   ]
 }
 
-تأكد من:
-- إرجاع ${messageCount} رسالة بالضبط
-- تنويع المرسل بين "man" و "woman"
-- استخدام اللغة العربية
-- المحتوى مناسب ومحترم
-- إرجاع JSON فقط بدون أي نص إضافي`;
+${isArabic ? 'تأكد من:' : 'Make sure to:'}
+${isArabic ? `- إرجاع ${messageCount} رسالة بالضبط` : `- Return exactly ${messageCount} messages`}
+${isArabic ? '- تنويع المرسل بين "man" و "woman"' : '- Alternate sender between "man" and "woman"'}
+${languageInstructions}
+${isArabic ? '- المحتوى مناسب ومحترم' : '- Content appropriate and respectful'}
+${isArabic ? '- إرجاع JSON فقط بدون أي نص إضافي' : '- Return JSON only without any additional text'}`;
 
     console.log('API Key being used:', apiKey.substring(0, 10) + '...');
+    console.log('Detected language:', detectedLanguage);
     console.log('Requested message count:', messageCount);
     console.log('Full prompt:', fullPrompt);
 
@@ -214,7 +248,10 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
       if (formattedMessages.length < messageCount * 0.8) {
         toast.warning(`تم توليد ${formattedMessages.length} رسالة من أصل ${messageCount} مطلوبة. جرب تقليل العدد أو تجربة مرة أخرى.`);
       } else {
-        toast.success(`تم توليد ${formattedMessages.length} رسالة بنجاح!`);
+        const successMessage = isArabic 
+          ? `تم توليد ${formattedMessages.length} رسالة باللغة العربية بنجاح!`
+          : `Successfully generated ${formattedMessages.length} messages in English!`;
+        toast.success(successMessage);
       }
 
       onGenerateMessages(formattedMessages);
@@ -286,11 +323,21 @@ const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorPr
             id="custom-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="مثال: محادثة بين AHMED و SARA تتضمن دردشة غيرة وحب ومشاكل تنتهي بمفاجأة..."
+            placeholder="مثال: محادثة بين "أحمد" و "سارة" تتضمن دردشة غيرة وحب ومشاكل تنتهي بمفاجأة..."
             className="mt-1"
             rows={3}
             dir="rtl"
           />
+          
+          {/* Display detected language */}
+          {prompt.trim() && (
+            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+              {detectLanguage(prompt) === 'arabic' 
+                ? '🇸🇦 تم اكتشاف اللغة العربية - ستتم كتابة المحادثة بالعربية'
+                : '🇺🇸 English language detected - conversation will be generated in English'
+              }
+            </div>
+          )}
           
           {/* Display extracted names and apply button */}
           {extractedNames && onUpdateParticipants && (
