@@ -3,6 +3,7 @@ import { User, Camera } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import ProfilePictureGallery from '@/components/ProfilePictureGallery';
 
 interface Participant {
   name: string;
@@ -26,6 +27,10 @@ const ParticipantProfile = ({ type, participant, onUpdate }: ParticipantProfileP
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleGalleryImageSelect = (imageUrl: string) => {
+    onUpdate(type, 'profilePicture', imageUrl);
   };
 
   const isMan = type === 'man';
@@ -61,15 +66,24 @@ const ParticipantProfile = ({ type, participant, onUpdate }: ParticipantProfileP
           </div>
           <div>
             <Label htmlFor={`${type}-picture`} className="text-gray-700 dark:text-gray-300 font-semibold">الصورة الشخصية</Label>
-            <div className="relative mt-2">
-              <Input
-                id={`${type}-picture`}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className={`bg-white/50 dark:bg-gray-700/50 border-2 border-${colorScheme}-200/50 dark:border-${colorScheme}-700/50`}
+            <div className="space-y-3 mt-2">
+              {/* File upload */}
+              <div className="relative">
+                <Input
+                  id={`${type}-picture`}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className={`bg-white/50 dark:bg-gray-700/50 border-2 border-${colorScheme}-200/50 dark:border-${colorScheme}-700/50`}
+                />
+                <Camera className={`absolute right-3 top-3 w-5 h-5 text-${colorScheme}-500 pointer-events-none`} />
+              </div>
+              
+              {/* Gallery selector */}
+              <ProfilePictureGallery 
+                onSelectImage={handleGalleryImageSelect}
+                triggerText="اختيار من معرض الصور (100+ صورة)"
               />
-              <Camera className={`absolute right-3 top-3 w-5 h-5 text-${colorScheme}-500 pointer-events-none`} />
             </div>
           </div>
         </div>
