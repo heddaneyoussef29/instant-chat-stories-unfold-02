@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/AppHeader';
@@ -16,6 +17,7 @@ interface Message {
   amount?: number;
   currency?: string;
   imageUrl?: string;
+  isRead?: boolean;
 }
 
 interface Participant {
@@ -45,13 +47,15 @@ const Index = () => {
       id: '1',
       sender: 'man',
       content: 'السلام عليكم ورحمة الله وبركاته',
-      type: 'text'
+      type: 'text',
+      isRead: false
     },
     {
       id: '2',
       sender: 'woman',
       content: 'وعليكم السلام ورحمة الله وبركاته، أهلاً وسهلاً',
-      type: 'text'
+      type: 'text',
+      isRead: false
     }
   ]);
 
@@ -62,7 +66,8 @@ const Index = () => {
       id: Date.now().toString(),
       sender: 'man',
       content: 'رسالة جديدة',
-      type: 'text'
+      type: 'text',
+      isRead: false
     };
     setMessages([...messages, newMessage]);
   };
@@ -87,36 +92,39 @@ const Index = () => {
     }));
   };
 
-  const handleAddEmoji = (emoji: string) => {
+  const handleEmojiSelect = (emoji: string, type: 'emoji' | 'reaction') => {
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'man',
       content: emoji,
-      type: 'emoji'
+      type: 'emoji',
+      isRead: false
     };
     setMessages([...messages, newMessage]);
   };
 
-  const handleSendMoney = (amount: number, currency: string) => {
+  const handleMoneyTransfer = (amount: number, currency: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'man',
       content: `تم إرسال ${amount} ${currency} بنجاح! 💰`,
       type: 'money',
       amount,
-      currency
+      currency,
+      isRead: false
     };
     setMessages([...messages, newMessage]);
   };
 
-  const handleRequestMoney = (amount: number, currency: string) => {
+  const handleMoneyRequest = (sender: 'man' | 'woman', amount: number, currency: string, isRequest: boolean) => {
     const newMessage: Message = {
       id: Date.now().toString(),
-      sender: 'man',
-      content: `طلب تحويل ${amount} ${currency} 💸`,
+      sender: sender,
+      content: isRequest ? `طلب تحويل ${amount} ${currency} 💸` : `تم إرسال ${amount} ${currency} بنجاح! 💰`,
       type: 'money',
       amount,
-      currency
+      currency,
+      isRead: false
     };
     setMessages([...messages, newMessage]);
   };
@@ -127,7 +135,8 @@ const Index = () => {
       sender: 'man',
       content: 'صورة',
       type: 'image',
-      imageUrl
+      imageUrl,
+      isRead: false
     };
     setMessages([...messages, newMessage]);
   };
@@ -153,12 +162,12 @@ const Index = () => {
           <ParticipantProfile
             type="man"
             participant={participants.man}
-            onUpdate={handleUpdateProfile}
+            onUpdate={(type, field, value) => handleUpdateProfile(type, field, value)}
           />
           <ParticipantProfile
             type="woman"
             participant={participants.woman}
-            onUpdate={handleUpdateProfile}
+            onUpdate={(type, field, value) => handleUpdateProfile(type, field, value)}
           />
         </div>
 
@@ -168,10 +177,10 @@ const Index = () => {
         />
 
         <ActionBar
-          onAddEmoji={handleAddEmoji}
-          onSendMoney={handleSendMoney}
-          onRequestMoney={handleRequestMoney}
-          onAddImage={handleAddImage}
+          onEmojiSelect={handleEmojiSelect}
+          onMoneyTransfer={handleMoneyTransfer}
+          onMoneyRequest={handleMoneyRequest}
+          onImageAdd={handleAddImage}
         />
 
         <MessagesList
