@@ -300,12 +300,41 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
         )}
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">نصائح للحصول على نتائج أفضل:</h4>
-          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-            <li>• للمحادثات الطويلة (+50 رسالة)، كن صبوراً - قد يستغرق وقتاً أطول</li>
-            <li>• إذا حصلت على رسائل أقل من المطلوب، جرب تقليل العدد إلى 30-40</li>
-            <li>• استخدم الطلب المخصص لتحديد موضوع المحادثة بدقة</li>
-          </ul>
+          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-3">نصائح للحصول على نتائج أفضل:</h4>
+          <div className="space-y-4">
+            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+              <li>• للمحادثات الطويلة (+50 رسالة)، كن صبوراً - قد يستغرق وقتاً أطول</li>
+              <li>• إذا حصلت على رسائل أقل من المطلوب، جرب تقليل العدد إلى 30-40</li>
+              <li>• استخدم الطلب المخصص لتحديد موضوع المحادثة بدقة</li>
+            </ul>
+            
+            <div className="border-t border-blue-200 dark:border-blue-700 pt-3">
+              <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2">أمثلة على كتابة الطلب المخصص:</h5>
+              
+              <div className="space-y-3">
+                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالعربية:</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                    "محادثة بين أحمد وسارة تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص"
+                  </p>
+                </div>
+                
+                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالإنجليزية:</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                    "Conversation between AHMED and SARA starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each"
+                  </p>
+                </div>
+                
+                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال محدد أكثر:</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                    "محادثة رومانسية طويلة بين حبيبين، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة"
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
