@@ -34,11 +34,13 @@ const ActionBar = ({ onEmojiSelect, onMoneyTransfer, onMoneyRequest, onImageAdd 
   };
 
   const handleMoneyTransfer = (amount: number, currency: string) => {
+    // استخدام onMoneyRequest مع isRequest = false للإرسال
     onMoneyRequest(selectedSender, amount, currency, false);
     setShowMoneyTransfer(false);
   };
 
   const handleMoneyRequest = (amount: number, currency: string) => {
+    // استخدام onMoneyRequest مع isRequest = true للطلب
     onMoneyRequest(selectedSender, amount, currency, true);
     setShowMoneyRequest(false);
   };

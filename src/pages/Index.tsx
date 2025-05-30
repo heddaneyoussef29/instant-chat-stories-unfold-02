@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/AppHeader';
@@ -103,6 +104,7 @@ const Index = () => {
   };
 
   const handleMoneyTransfer = (amount: number, currency: string) => {
+    console.log('handleMoneyTransfer called:', { amount, currency });
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'man',
@@ -112,10 +114,16 @@ const Index = () => {
       currency,
       isRead: false
     };
-    setMessages([...messages, newMessage]);
+    console.log('Adding money message:', newMessage);
+    setMessages(prev => {
+      const updated = [...prev, newMessage];
+      console.log('Updated messages:', updated);
+      return updated;
+    });
   };
 
   const handleMoneyRequest = (sender: 'man' | 'woman', amount: number, currency: string, isRequest: boolean) => {
+    console.log('handleMoneyRequest called:', { sender, amount, currency, isRequest });
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: sender,
@@ -125,10 +133,16 @@ const Index = () => {
       currency,
       isRead: false
     };
-    setMessages([...messages, newMessage]);
+    console.log('Adding money request/transfer message:', newMessage);
+    setMessages(prev => {
+      const updated = [...prev, newMessage];
+      console.log('Updated messages after money request:', updated);
+      return updated;
+    });
   };
 
   const handleAddImage = (imageUrl: string, sender: 'man' | 'woman') => {
+    console.log('handleAddImage called:', { imageUrl, sender });
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: sender,
@@ -137,7 +151,12 @@ const Index = () => {
       imageUrl,
       isRead: false
     };
-    setMessages([...messages, newMessage]);
+    console.log('Adding image message:', newMessage);
+    setMessages(prev => {
+      const updated = [...prev, newMessage];
+      console.log('Updated messages after adding image:', updated);
+      return updated;
+    });
   };
 
   const handleStartChat = () => {
