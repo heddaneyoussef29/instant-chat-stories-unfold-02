@@ -40,6 +40,11 @@ const ChatSetup = () => {
     navigate('/chat');
   };
 
+  const handleUpdateParticipants = (manName: string, womanName: string) => {
+    handleUpdateProfile('man', 'name', manName);
+    handleUpdateProfile('woman', 'name', womanName);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -60,7 +65,10 @@ const ChatSetup = () => {
         currentBackground={chatBackground}
       />
 
-      <AIGenerator onGenerateMessages={handleReplaceMessages} />
+      <AIGenerator 
+        onGenerateMessages={handleReplaceMessages} 
+        onUpdateParticipants={handleUpdateParticipants}
+      />
 
       <ActionBar
         onEmojiSelect={handleEmojiSelect}

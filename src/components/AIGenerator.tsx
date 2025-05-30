@@ -1,23 +1,65 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Loader2, MessageSquare, Users } from 'lucide-react';
+import { Sparkles, Loader2, MessageSquare, Users, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AIGeneratorProps {
   onGenerateMessages: (messages: any[]) => void;
+  onUpdateParticipants?: (manName: string, womanName: string) => void;
 }
 
-const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
+const AIGenerator = ({ onGenerateMessages, onUpdateParticipants }: AIGeneratorProps) => {
   const [apiKey, setApiKey] = useState(() => {
     return localStorage.getItem('gemini_api_key') || '';
   });
   const [prompt, setPrompt] = useState('');
   const [messageCount, setMessageCount] = useState(60);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [extractedNames, setExtractedNames] = useState<{man: string, woman: string} | null>(null);
+
+  // Function to extract names from text
+  const extractNamesFromText = (text: string) => {
+    // Pattern to match names between quotes in Arabic or English
+    const arabicPattern = /"([^"]+)"\s*و\s*"([^"]+)"/;
+    const englishPattern = /"([^"]+)"\s*and\s*"([^"]+)"/i;
+    
+    let match = text.match(arabicPattern);
+    if (!match) {
+      match = text.match(englishPattern);
+    }
+    
+    if (match && match.length >= 3) {
+      const name1 = match[1].trim();
+      const name2 = match[2].trim();
+      
+      // Return the names
+      return { man: name1, woman: name2 };
+    }
+    
+    return null;
+  };
+
+  // Watch for changes in prompt and extract names
+  useEffect(() => {
+    if (prompt.trim()) {
+      const names = extractNamesFromText(prompt);
+      setExtractedNames(names);
+    } else {
+      setExtractedNames(null);
+    }
+  }, [prompt]);
+
+  // Function to apply extracted names
+  const applyExtractedNames = () => {
+    if (extractedNames && onUpdateParticipants) {
+      onUpdateParticipants(extractedNames.man, extractedNames.woman);
+      toast.success(`تم تطبيق الأسماء: ${extractedNames.man} و ${extractedNames.woman}`);
+    }
+  };
 
   const saveApiKey = () => {
     if (apiKey.trim()) {
@@ -249,6 +291,23 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
             rows={3}
             dir="rtl"
           />
+          
+          {/* Display extracted names and apply button */}
+          {extractedNames && onUpdateParticipants && (
+            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-green-700 dark:text-green-300">
+                    تم العثور على الأسماء: <strong>{extractedNames.man}</strong> و <strong>{extractedNames.woman}</strong>
+                  </span>
+                </div>
+                <Button onClick={applyExtractedNames} size="sm" variant="outline" className="text-green-600 border-green-300 hover:bg-green-50">
+                  تطبيق الأسماء
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -306,6 +365,7 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
               <li>• للمحادثات الطويلة (+50 رسالة)، كن صبوراً - قد يستغرق وقتاً أطول</li>
               <li>• إذا حصلت على رسائل أقل من المطلوب، جرب تقليل العدد إلى 30-40</li>
               <li>• استخدم الطلب المخصص لتحديد موضوع المحادثة بدقة</li>
+              <li>• ضع الأسماء بين علامتي تنصيص لاستخراجها تلقائياً</li>
             </ul>
             
             <div className="border-t border-blue-200 dark:border-blue-700 pt-3">
@@ -313,23 +373,23 @@ const AIGenerator = ({ onGenerateMessages }: AIGeneratorProps) => {
               
               <div className="space-y-3">
                 <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالعربية:</p>
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالعربية (مع استخراج الأسماء):</p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    "محادثة بين أحمد وسارة تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص"
+                    "محادثة بين "أحمد" و "سارة" تبدأ بحب وغيرة، ثم مشاكل وسوء فهم، وتنتهي بمفاجأة جميلة مثل خطوبة أو هدية. 30 رسالة لكل شخص"
                   </p>
                 </div>
                 
                 <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
-                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالإنجليزية:</p>
+                  <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال بالإنجليزية (مع استخراج الأسماء):</p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    "Conversation between AHMED and SARA starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each"
+                    "Conversation between "HAMZA" and "SAMIRA" starting with love and jealousy, then problems and misunderstanding, ending with a beautiful surprise like engagement or gift. 30 messages each"
                   </p>
                 </div>
                 
                 <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
                   <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">مثال محدد أكثر:</p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                    "محادثة رومانسية طويلة بين حبيبين، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة"
+                    "محادثة رومانسية طويلة بين "حمزة" و "ليلى"، تتضمن غيرة بسبب صديقة، مشاكل عائلية، ثم مصالحة وخطوبة مفاجئة في النهاية. اجعل المحادثة واقعية ومؤثرة"
                   </p>
                 </div>
               </div>
