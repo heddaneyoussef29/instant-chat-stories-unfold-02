@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -44,7 +43,7 @@ const ChatPage = () => {
   // Play notification sound
   const playNotificationSound = () => {
     try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+rzv2wwBylxx+3glkwLDoHC7+OmWBwOlsX1z3s9Azjm8/CmZhUIwsb1z3g8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJwsb1zng8BMPm8/CmZhUJ');
       audio.volume = 0.3;
       audio.play().catch(() => {});
     } catch (error) {
@@ -187,6 +186,13 @@ const ChatPage = () => {
       minute: '2-digit', 
       hour12: false 
     });
+  };
+
+  const getTypingText = () => {
+    if (!isTyping || !typingSender) return 'online';
+    
+    const participant = getParticipantInfo(typingSender);
+    return `${participant.name} يكتب الآن`;
   };
 
   const renderReadStatus = (message: Message) => {
@@ -367,7 +373,7 @@ const ChatPage = () => {
         <div className="flex-1">
           <h3 className="font-black text-white text-xl">{chatData.woman.name}</h3>
           <p className="text-lg font-black text-gray-200">
-            {isTyping && typingSender ? 'typing...' : 'online'}
+            {getTypingText()}
           </p>
         </div>
         
